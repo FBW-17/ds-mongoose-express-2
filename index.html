@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Exercise 3 Tester</title>
+</head>
+<body>
+    
+    <h1>Testing our API with fetch</h1>
+    
+    <div id="users"></div>
+    <div id="errors" style="color: red; font-weight: bold;"></div>
+
+    <button onclick="get();">Get all</button>
+    <button onclick="getOne();">Get one</button>
+    <button onclick="post()">Create one</button>
+    <button onclick="update()">Update one</button>
+    <button onclick="remove()">Delete one</button>
+
+    <script>
+
+        const divUsers = document.querySelector("#users")
+        const divErrors = document.querySelector("#errors")
+
+        const printUser = (user) => {
+            if(!user.error) {
+                divUsers.innerHTML = JSON.stringify(user)
+                divErrors.innerHTML = ""
+            }
+            else {
+                divErrors.innerHTML = JSON.stringify(user)
+            }
+        }
+
+        const fetchData = async (url, method = "GET", headers, body) => {
+            let options = { method }
+            if(headers) { options.headers = headers }
+            if(body) { options.body = JSON.stringify(body) }
+            const res = await fetch(url, options)
+            return res.json()
+        }
+
+        const get = () => {
+            fetch('http://localhost:3000/user')
+            .then(res => res.json())
+            .then(users => {
+                let usersHtml = users.map(user => `${JSON.stringify(user)}<br />`)
+                divUsers.innerHTML = usersHtml.join("")
+            })
+        }
+
+        const getOne = () => {
+            let id = prompt("Please give an ID")
+            fetch(`http://localhost:3000/user/${id}`).then(res => res.json())
+            .then(user => {
+                printUser(user)                
+            })
+        }
+
+        const post = async () => {
+            let user = await fetchData('http://localhost:3000/user', 
+                "POST", {"Content-Type": "application/json"},
+                {
+                    firstname: "Firstname", 
+                    lastname: "Lastname",
+                    isAdmin: false
+                }
+            )
+            printUser(user)
+        }
+
+        const update = async () => {
+            let userUpdated = await fetchData(
+                'http://localhost:3000/user/5df78edc573cf22183c23b40', 
+                "PATCH", {"Content-Type": "application/json"},
+                { firstname: "FirstnameRob", lastname: "LastnameRis" }
+            )
+            printUser(userUpdated)         
+        }
+
+        const remove = async () => {
+            let id = prompt("Please give an ID")
+            let userDeleted = await fetchData(`http://localhost:3000/user/${id}`, "DELETE")
+            printUser(userDeleted)
+        }
+
+/**
+ * FETCH statements:
+ * 
+ * GET: fetch('http://localhost:3000/user')
+ * GET: fetch('http://localhost:3000/user/15')
+ * POST: fetch('http://localhost:3000/user', {
+             method: "POST", headers: {"Content-Type": "application/json"},
+             body: JSON.stringify({firstname: "Firstname", lastname: "Lastname"})
+         })
+   PATCH: fetch('http://localhost:3000/user/15', {
+             method: "PATCH", headers: {"Content-Type": "application/json"},
+             body: JSON.stringify({firstname: "FirstnameNew", lastname: "LastnameNew"})
+         })
+   DELETE: fetch('http://localhost:3000/user/7', { method: "DELETE" })
+         })
+*/
+</script>
+
+</body>
+</html>
